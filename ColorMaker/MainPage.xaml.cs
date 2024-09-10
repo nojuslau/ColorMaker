@@ -1,24 +1,68 @@
-﻿namespace ColorMaker;
+﻿using CommunityToolkit.Maui.Alerts;
+using System.Diagnostics;
+
+namespace ColorMaker;
 
 public partial class MainPage : ContentPage
 {
-    int count = 0;
+    bool isRandom;
+    string hexValue;
 
     public MainPage()
     {
         InitializeComponent();
     }
 
-    private void OnCounterClicked(object sender, EventArgs e)
+    private void slider_ValueChanged(object sender, ValueChangedEventArgs e)
     {
-        count++;
+        if (!isRandom)
+        {
+            var red = sldRed.Value;
+            var green = sldGreen.Value;
+            var blue = sldBlue.Value;
 
-        if (count == 1)
-            CounterBtn.Text = $"Clicked {count} time";
-        else
-            CounterBtn.Text = $"Clicked {count} times";
+            Color color = Color.FromRgb(red, green, blue);
 
-        SemanticScreenReader.Announce(CounterBtn.Text);
+            SetColor(color);
+        }
+    }
+
+    private void SetColor(Color color)
+    {
+        Debug.WriteLine(color.ToString());
+        btnRandom.BackgroundColor = color;
+        Container.BackgroundColor = color;
+        hexValue = color.ToHex();
+        lblHex.Text = hexValue;
+    }
+
+    private void btnRandom_Clicked(object sender, EventArgs e)
+    {
+        isRandom = true;
+        var random = new Random();
+
+        var color = Color.FromRgb(
+            random.Next(0, 255),
+            random.Next(0, 255),
+            random.Next(0, 255)
+        );
+
+        SetColor(color);
+
+        sldRed.Value = color.Red;
+        sldGreen.Value = color.Green;
+        sldBlue.Value = color.Blue;
+        
+        isRandom = false;
+    }
+
+    private async void ImageButton_Clicked(object sender, EventArgs e)
+    {
+        await Clipboard.SetTextAsync(hexValue);
+        var toast = Toast.Make("Color copied",
+            CommunityToolkit.Maui.Core.ToastDuration.Short,
+            12);
+        await toast.Show();
     }
 }
 
